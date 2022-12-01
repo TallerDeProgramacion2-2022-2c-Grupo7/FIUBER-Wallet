@@ -28,7 +28,8 @@ jobs:
           ssh://git@github.com/
       - run: npm ci
       - name: Deploy
-        env:
-          ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
-          MNEMONIC: ${{ secrets.MNEMONIC }}
-        run: npm run deploy-kovan
+        run: |
+        touch .env
+        echo ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }} >> .env
+        echo MNEMONIC: ${{ secrets.MNEMONIC }} >> .env
+        npm run deploy-kovan
