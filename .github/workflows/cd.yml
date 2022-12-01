@@ -26,9 +26,11 @@ jobs:
         run: >
           git config --global url."https://github.com/".insteadOf
           ssh://git@github.com/
-      - run: npm ci
-      - name: Deploy
+      - name: create env file
         run: >
         touch .env
         echo ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }} >> .env
         echo MNEMONIC: ${{ secrets.MNEMONIC }} >> .env
+      - run: npm ci
+      - name: Deploy
+        run: npm run deploy-kovan
