@@ -29,6 +29,10 @@ jobs:
         run: >
           git config --global url."https://github.com/".insteadOf
           ssh://git@github.com/
+      - name: Create env file
+        run: >
+          echo "ALCHEMY_API_KEY=${{ secrets.ALCHEMY_API_KEY }}" >> ./.env
+          && echo "MNEMONIC=${{ secrets.MNEMONIC }}" >> ./.env
       - run: npm ci
       - run: npm test
       - run: npm run lint
