@@ -8,6 +8,9 @@
     "hardhat": "^2.12.1",
     "hardhat-deploy": "^0.11.18",
     "hardhat-deploy-ethers": "^0.3.0-beta.13",
+    "pg": "^8.8.0",
+    "pg-hstore": "^2.3.4",
+    "sequelize": "^6.26.0",
     "solc": "^0.7.4"
   },
   "devDependencies": {
@@ -44,6 +47,7 @@
     "husky": "^5.0.9",
     "leafleth": "^0.0.9",
     "prettier": "^2.2.1",
+    "sequelize-cli": "^6.5.2",
     "shelljs": "^0.8.4",
     "solhint": "^3.3.2",
     "solhint-plugin-prettier": "^0.0.5",
