@@ -12,11 +12,12 @@ const getDeployerWallet =
 
 const createWallet =
   ({ config }) =>
-  async () => {
+  async uid => {
     const provider = new ethers.providers.AlchemyProvider(config.network, process.env.ALCHEMY_API_KEY);
     // This may break in some environments, keep an eye on it
     const wallet = ethers.Wallet.createRandom().connect(provider);
     accounts.push({
+      uid,
       address: wallet.address,
       privateKey: wallet.privateKey,
     });
