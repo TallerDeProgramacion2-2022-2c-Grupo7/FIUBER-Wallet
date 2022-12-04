@@ -13,7 +13,7 @@ module.exports = (sequelize, DataTypes) => {
   }
   Wallet.init(
     {
-      uid: DataTypes.UUID,
+      uid: { type: DataTypes.STRING, primaryKey: true },
       publicKey: DataTypes.STRING,
       privateKey: DataTypes.STRING,
     },
