@@ -9,15 +9,17 @@ const createWallet = async (uid, publicKey, privateKey) => {
 const getWallets = async () => {
   const wallets = await db.wallet.findAll();
 
-  return wallets.toJSON();
+  return wallets.map(wallet => wallet.toJSON());
 };
 
-const getWalletByUid = async uid => {
-  const wallet = await db.wallet.findOne({ where: { uid } });
+const getWalletsByUid = async uid => {
+  const wallets = await db.wallet.find({ where: { uid } });
+
+  return wallets.map(wallet => wallet.toJSON());
 };
 
 module.exports = {
   createWallet,
   getWallets,
-  getWalletByUid,
+  getWalletsByUid,
 };

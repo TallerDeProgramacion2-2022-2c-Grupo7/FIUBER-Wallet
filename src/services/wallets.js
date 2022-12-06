@@ -21,12 +21,12 @@ const createWallet =
     return result;
   };
 
-const getWalletsData = () => () => {
-  return db.getWallets();
+const getWalletsData = () => uid => {
+  return uid ? db.getWalletsByUid(uid) : db.getWallets();
 };
 
 const getWalletData = () => uid => {
-  return db.getWalletByUid(uid);
+  return db.getWalletsByUid(uid)[-1];
 };
 
 const getWallet =

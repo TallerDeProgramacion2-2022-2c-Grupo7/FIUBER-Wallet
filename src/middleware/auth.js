@@ -24,7 +24,8 @@ const firebaseAuth = async (req, res) => {
       throw new Error("Unauthorized");
     }
     const token = await auth.verifyIdToken(authorization);
-    req.user = await auth.getUser(token.uid);
+    const firebaseUser = await auth.getUser(token.uid);
+    req.user = { ...firebaseUser, isAdmin: firebaseUser.customClaims?.admin };
   } catch (error) {
     throw new Error(error.info);
   }
