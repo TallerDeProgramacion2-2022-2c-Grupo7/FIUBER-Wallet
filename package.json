@@ -91,6 +91,7 @@
     "test": "hardhat test",
     "deploy-goerli": "hardhat deploy --network goerli",
     "deploy-local": "hardhat deploy --network hardhat",
+    "prestart": "sequelize-cli db:migrate",
     "start": "node src/server",
     "release": "standard-version"
   }
