@@ -13,6 +13,8 @@ docs/
 .vscode/
 src/
 deployments/
+db/
+config/
 
 # files
 .solcover.js

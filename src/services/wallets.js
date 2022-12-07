@@ -1,4 +1,5 @@
 const ethers = require("ethers");
+const db = require("../db/wallet");
 const accounts = [];
 
 const getDeployerWallet =
@@ -16,33 +17,25 @@ const createWallet =
     const provider = new ethers.providers.AlchemyProvider(config.network, process.env.ALCHEMY_API_KEY);
     // This may break in some environments, keep an eye on it
     const wallet = ethers.Wallet.createRandom().connect(provider);
-    accounts.push({
-      uid,
-      address: wallet.address,
-      privateKey: wallet.privateKey,
-    });
-    const result = {
-      id: accounts.length,
-      address: wallet.address,
-      privateKey: wallet.privateKey,
-    };
+    const result = await db.createWallet(uid, wallet.address, wallet.privateKey);
     return result;
   };
 
-const getWalletsData = () => () => {
-  return accounts;
+const getWalletsData = () => uid => {
+  return uid ? db.getWalletsByUid(uid) : db.getWallets();
 };
 
-const getWalletData = () => index => {
-  return accounts[index - 1];
+const getWalletData = () => uid => {
+  return db.getWalletsByUid(uid)[-1];
 };
 
 const getWallet =
   ({ config }) =>
-  index => {
+  async uid => {
     const provider = new ethers.providers.AlchemyProvider(config.network, process.env.ALCHEMY_API_KEY);
+    const walletData = await db.getWalletByUid(uid);
 
-    return new ethers.Wallet(accounts[index - 1].privateKey, provider);
+    return new ethers.Wallet(walletData.privateKey, provider);
   };
 
 module.exports = ({ config }) => ({
