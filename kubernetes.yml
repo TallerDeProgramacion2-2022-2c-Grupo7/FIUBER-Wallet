@@ -1,0 +1,123 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: $APP_NAME
+spec:
+  selector:
+    matchLabels:
+      app: $APP_NAME
+  template:
+    metadata:
+      labels:
+        app: $APP_NAME
+    spec:
+      containers:
+        - image: $DOCKERHUB_USERNAME/$APP_NAME
+          name: $APP_NAME
+          env:
+            - name: PROD_DB_USERNAME
+              value: $POSTGRES_USER
+            - name: PROD_DB_PASSWORD
+              value: $POSTGRES_PASSWORD
+            - name: PROD_DB_NAME
+              value: $POSTGRES_DB
+            - name: PROD_DB_HOSTNAME
+              value: $APP_NAME-postgres
+            - name: PROD_DB_PORT
+              value: "5432"
+            - name: NODE_ENV
+              value: production
+          envFrom:
+            - secretRef:
+                name: wallet-firebase-secrets
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: $APP_NAME-postgres
+spec:
+  selector:
+    matchLabels:
+      app: $APP_NAME-postgres
+  template:
+    metadata:
+      labels:
+        app: $APP_NAME-postgres
+    spec:
+      containers:
+        - image: postgres
+          name: $APP_NAME-postgres
+          env:
+            - name: POSTGRES_USER
+              value: "$POSTGRES_USER"
+            - name: POSTGRES_PASSWORD
+              value: "$POSTGRES_PASSWORD"
+            - name: POSTGRES_DB
+              value: "$POSTGRES_DB"
+            - name: PGDATA
+              value: /var/lib/postgresql/data/db/
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: $APP_NAME-db-volume
+      volumes:
+        - name: $APP_NAME-db-volume
+          persistentVolumeClaim:
+            claimName: $APP_NAME-postgres-claim
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: $APP_NAME-postgres-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: $APP_NAME
+spec:
+  type: ClusterIP
+  ports:
+    - name: $APP_NAME
+      port: 8000
+  selector:
+    app: $APP_NAME
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: $APP_NAME-postgres
+spec:
+  type: ClusterIP
+  ports:
+    - name: $APP_NAME-postgres
+      port: 5432
+  selector:
+    app: $APP_NAME-postgres
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: $APP_NAME
+  annotations:
+    dev.okteto.com/generate-host: $APP_NAME
+spec:
+  rules:
+    - http:
+        paths:
+          - backend:
+              service:
+                name: $APP_NAME
+                port:
+                  number: 8000
+            path: /
+            pathType: ImplementationSpecific
