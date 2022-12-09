@@ -3,6 +3,9 @@ const getWalletsData = require("./handlers/getWalletsHandler");
 const createWallet = require("./handlers/createWalletHandler");
 const createDeposit = require("./handlers/createDepositHandler");
 const getDeposit = require("./handlers/getDepositHandler");
+const getBalance = require("./handlers/getBalanceHandler");
+const getLocked = require("./handlers/getLockedHandler");
+const createWithdawal = require("./handlers/createWithdrawal");
 
 function getWalletDataRoute({ services, config, fastify }) {
   return {
@@ -54,4 +57,43 @@ function getDepositRoute({ services, config, fastify }) {
   };
 }
 
-module.exports = [getWalletDataRoute, getWalletsDataRoute, createWalletRoute, createDepositRoute, getDepositRoute];
+function getBalanceRoute({ services, config, fastify }) {
+  return {
+    method: "GET",
+    url: "/balance/:id",
+    schema: getBalance.schema(config),
+    handler: getBalance.handler({ config, ...services }),
+    preHandler: fastify.auth([fastify.firebaseAuth]),
+  };
+}
+
+function getLockedRoute({ services, config, fastify }) {
+  return {
+    method: "GET",
+    url: "/locked/:id",
+    schema: getLocked.schema(config),
+    handler: getLocked.handler({ config, ...services }),
+    preHandler: fastify.auth([fastify.firebaseAuth]),
+  };
+}
+
+function createWithdawalRoute({ services, config, fastify }) {
+  return {
+    method: "POST",
+    url: "/withdraw",
+    schema: createWithdawal.schema(config),
+    handler: createWithdawal.handler({ config, ...services }),
+    preHandler: fastify.auth([fastify.firebaseAuth]),
+  };
+}
+
+module.exports = [
+  getWalletDataRoute,
+  getWalletsDataRoute,
+  createWalletRoute,
+  createDepositRoute,
+  getDepositRoute,
+  getBalanceRoute,
+  getLockedRoute,
+  createWithdawalRoute,
+];
