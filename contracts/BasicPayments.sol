@@ -5,6 +5,7 @@ import "hardhat/console.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/math/Math.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 /**
     @title BasicPayments Contract
@@ -17,7 +18,7 @@ contract BasicPayments is Ownable {
 
     event PaymentMade(address indexed receiver, uint256 amount);
 
-    event DepositMade(address indexed sender, uint256 amount);
+    event DepositMade(address indexed sender, uint256 amount, address indexed receiver);
 
     /**
         @notice Mapping of payments sent to an address
@@ -30,8 +31,8 @@ contract BasicPayments is Ownable {
         Fails if value sent is 0
         @dev it calls an internal function that does this entirely
      */
-    function deposit() external payable {
-        _deposit(msg.sender, msg.value);
+    function deposit(address receiver) external payable {
+        _deposit(msg.sender, msg.value, receiver);
     }
 
     /**
@@ -46,6 +47,8 @@ contract BasicPayments is Ownable {
     function sendPayment(address payable receiver, uint256 amount) external onlyOwner {
         require(address(this).balance >= amount, "not enough balance");
         require(amount > 0, "cannot send 0 weis");
+        require(sentPayments[receiver] >= amount, "not enough user balance");
+        sentPayments[receiver] = sentPayments[receiver].sub(amount);
         emit PaymentMade(receiver, amount);
         (bool success, ) = receiver.call{ value: amount }("");
         require(success, "payment failed");
@@ -55,7 +58,7 @@ contract BasicPayments is Ownable {
         @notice fallback function: acts in the same way that deposit does
      */
     receive() external payable {
-        _deposit(msg.sender, msg.value);
+        _deposit(msg.sender, msg.value, msg.sender);
     }
 
     /**
@@ -64,9 +67,13 @@ contract BasicPayments is Ownable {
         Fails if value sent is 0
         @dev it calls an internal function that does this entirely
      */
-    function _deposit(address sender, uint256 amount) internal {
+    function _deposit(address sender, uint256 amount, address receiver) internal {
         require(amount > 0, "did not send any value");
-        sentPayments[sender] = sentPayments[sender].add(amount);
-        emit DepositMade(sender, amount);
+        sentPayments[receiver] = sentPayments[receiver].add(amount);
+        emit DepositMade(sender, amount, receiver);
+    }
+
+    function getDepositedPayments(address receiver) public view onlyOwner returns (uint256) {
+        return sentPayments[receiver];
     }
 }
