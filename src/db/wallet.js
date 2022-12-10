@@ -15,7 +15,7 @@ const getWallets = async () => {
 const getWalletByUid = async uid => {
   const wallet = await db.wallet.findByPk(uid);
 
-  return wallet.toJSON();
+  return wallet != null ? wallet.toJSON() : null;
 };
 
 module.exports = {

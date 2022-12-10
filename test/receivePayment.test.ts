@@ -10,17 +10,21 @@ const { loadFixture } = waffle;
 
 const { expect } = chai;
 
-type PaymentFunction = (contractWithSigner: BasicPayments, amountToBeSent: BigNumber) => Promise<ContractTransaction>;
-const deposit: PaymentFunction = (contractWithSigner, amountToBeSent) => {
-  return contractWithSigner.deposit({ value: amountToBeSent });
+type PaymentFunction = (
+  contractWithSigner: BasicPayments,
+  amountToBeSent: BigNumber,
+  receiver: string,
+) => Promise<ContractTransaction>;
+const deposit: PaymentFunction = (contractWithSigner, amountToBeSent, receiver) => {
+  return contractWithSigner.deposit(receiver, { value: amountToBeSent });
 };
 
-const receiveFallback: PaymentFunction = (contractWithSigner, amountToBeSent) => {
-  return contractWithSigner.signer.sendTransaction({
-    to: contractWithSigner.address,
-    value: BigNumber.from(amountToBeSent).toHexString(),
-  });
-};
+// const receiveFallback: PaymentFunction = (contractWithSigner, amountToBeSent) => {
+//   return contractWithSigner.signer.sendTransaction({
+//     to: contractWithSigner.address,
+//     value: BigNumber.from(amountToBeSent).toHexString(),
+//   });
+// };
 
 const makeTestsPaymentToContract = (paymentFunction: PaymentFunction, functionName: string) => {
   describe(`BasicPayments - Send payments to contract through ${functionName}`, function () {
@@ -30,16 +34,18 @@ const makeTestsPaymentToContract = (paymentFunction: PaymentFunction, functionNa
         basicPayments = await loadFixture(fixtureDeployedBasicPayments);
       });
       const testPaymentReceiving = (amountToBeSentInEthers: string) => {
-        describe(`WHEN a user sends a payment of 3 ethers`, function () {
+        describe(`WHEN a user sends a payment of ${amountToBeSentInEthers} ethers`, function () {
           let paymentTx: ContractTransaction;
           let sender: SignerWithAddress;
+          let receiver: string;
           let amountToBeSentPreviously: BigNumber;
           const amountToBeSent = ethers.utils.parseEther(amountToBeSentInEthers);
           before(async function () {
-            const { sender: senderAddress } = await getNamedAccounts();
+            const { sender: senderAddress, receiver: receiverAddress } = await getNamedAccounts();
             sender = await ethers.getSigner(senderAddress);
+            receiver = receiverAddress;
             amountToBeSentPreviously = await basicPayments.sentPayments(sender.address);
-            paymentTx = await paymentFunction(basicPayments.connect(sender), amountToBeSent);
+            paymentTx = await paymentFunction(basicPayments.connect(sender), amountToBeSent, receiverAddress);
           });
           it(`THEN the sender decreases its balance in ${amountToBeSentInEthers} ethers`, async function () {
             return expect(paymentTx).to.changeEtherBalance(sender, amountToBeSent.mul(-1));
@@ -50,7 +56,9 @@ const makeTestsPaymentToContract = (paymentFunction: PaymentFunction, functionNa
           });
 
           it(`THEN the contract emits a DepositMade event`, async function () {
-            return expect(paymentTx).to.emit(basicPayments, "DepositMade").withArgs(sender.address, amountToBeSent);
+            return expect(paymentTx)
+              .to.emit(basicPayments, "DepositMade")
+              .withArgs(sender.address, amountToBeSent, receiver);
           });
 
           it(`THEN the contract marks that the user has sent the funds`, async function () {
@@ -69,12 +77,14 @@ const makeTestsPaymentToContract = (paymentFunction: PaymentFunction, functionNa
       describe(`WHEN a user sends a payment of 0 ethers`, function () {
         let paymentTx: Promise<ContractTransaction>;
         let sender: SignerWithAddress;
+        let receiver: string;
         const amountToBeSentInEthers = "0";
         const amountToBeSent = ethers.utils.parseEther(amountToBeSentInEthers);
         it(`THEN the tx fails`, async function () {
-          const { sender: senderAddress } = await getNamedAccounts();
+          const { sender: senderAddress, receiver: receiverAddress } = await getNamedAccounts();
           sender = await ethers.getSigner(senderAddress);
-          paymentTx = paymentFunction(basicPayments.connect(sender), amountToBeSent);
+          receiver = receiverAddress;
+          paymentTx = paymentFunction(basicPayments.connect(sender), amountToBeSent, receiver);
           return expect(paymentTx).to.be.revertedWith("did not send any value");
         });
       });
@@ -82,5 +92,5 @@ const makeTestsPaymentToContract = (paymentFunction: PaymentFunction, functionNa
   });
 };
 
-makeTestsPaymentToContract(receiveFallback, "receiveFallback");
+//makeTestsPaymentToContract(receiveFallback, "receiveFallback");
 makeTestsPaymentToContract(deposit, "deposit");

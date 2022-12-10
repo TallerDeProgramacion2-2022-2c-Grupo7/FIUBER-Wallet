@@ -1,4 +1,6 @@
 const ethers = require("ethers");
+const { createDeposit, updateDeposit, getDeposit } = require("../db/deposit");
+const { createWithdraw, updateWithdraw, getWithdraw } = require("../db/withdraw");
 
 const getContract = (config, wallet) => {
   return new ethers.Contract(config.contractAddress, config.contractAbi, wallet);
@@ -17,12 +19,10 @@ const deposit =
       receipt => {
         const firstEvent = receipt && receipt.events && receipt.events[0];
         if (firstEvent && firstEvent.event == "DepositMade") {
-          deposits[tx.hash] = {
-            senderAddress: firstEvent.args.sender,
-            amountSent: firstEvent.args.amount,
-          };
+          updateDeposit(tx.hash, "minted");
         } else {
           console.error(`Payment not created in tx ${tx.hash}`);
+          updateDeposit(tx.hash, "failed");
         }
       },
       error => {
@@ -35,7 +35,8 @@ const deposit =
         console.error(message);
       },
     );
-    return tx;
+    const deposit = await createDeposit(tx.hash, receiverWallet.address, senderWallet.address, amountToSend);
+    return deposit;
   };
 
 const withdraPayment =
@@ -47,12 +48,10 @@ const withdraPayment =
       receipt => {
         const firstEvent = receipt && receipt.events && receipt.events[0];
         if (firstEvent && firstEvent.event == "PaymentMade") {
-          deposits[tx.hash] = {
-            senderAddress: firstEvent.args.sender,
-            amountSent: firstEvent.args.amount,
-          };
+          updateWithdraw(tx.hash, "minted");
         } else {
           console.error(`Payment not created in tx ${tx.hash}`);
+          updateWithdraw(tx.hash, "failed");
         }
       },
       error => {
@@ -65,7 +64,8 @@ const withdraPayment =
         console.error(message);
       },
     );
-    return tx;
+    const withdraw = await createWithdraw(tx.hash, receiverWallet.address, amountToSend);
+    return withdraw;
   };
 
 const getLocked =
@@ -79,7 +79,13 @@ const getLocked =
 const getDepositReceipt =
   ({}) =>
   async depositTxHash => {
-    return deposits[depositTxHash];
+    return getDeposit(depositTxHash);
+  };
+
+const getWithdrawReceipt =
+  ({}) =>
+  async withdrawTxHash => {
+    return getWithdraw(withdrawTxHash);
   };
 
 module.exports = dependencies => ({
@@ -87,4 +93,5 @@ module.exports = dependencies => ({
   getDepositReceipt: getDepositReceipt(dependencies),
   getLocked: getLocked(dependencies),
   withdraPayment: withdraPayment(dependencies),
+  getWithdrawReceipt: getWithdrawReceipt(dependencies),
 });

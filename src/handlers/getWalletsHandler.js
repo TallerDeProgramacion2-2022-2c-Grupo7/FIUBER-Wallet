@@ -8,7 +8,7 @@ function handler({ walletService }) {
   return async function (req, reply) {
     const uid = req.user.isAdmin ? undefined : req.user.uid;
     const body = await walletService.getWalletsData(uid);
-    return reply.code(200).send(body);
+    return reply.code(200).send({ result: body });
   };
 }
 

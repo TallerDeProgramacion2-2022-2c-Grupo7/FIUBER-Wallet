@@ -24,6 +24,7 @@ contract BasicPayments is Ownable {
         @notice Mapping of payments sent to an address
      */
     mapping(address => uint256) public sentPayments;
+    mapping(address => uint256) public receivedPayments;
 
     /**
         @notice Function to receive payments
@@ -47,8 +48,8 @@ contract BasicPayments is Ownable {
     function sendPayment(address payable receiver, uint256 amount) external onlyOwner {
         require(address(this).balance >= amount, "not enough balance");
         require(amount > 0, "cannot send 0 weis");
-        require(sentPayments[receiver] >= amount, "not enough user balance");
-        sentPayments[receiver] = sentPayments[receiver].sub(amount);
+        require(receivedPayments[receiver] >= amount, "not enough user balance");
+        receivedPayments[receiver] = receivedPayments[receiver].sub(amount);
         emit PaymentMade(receiver, amount);
         (bool success, ) = receiver.call{ value: amount }("");
         require(success, "payment failed");
@@ -69,11 +70,12 @@ contract BasicPayments is Ownable {
      */
     function _deposit(address sender, uint256 amount, address receiver) internal {
         require(amount > 0, "did not send any value");
-        sentPayments[receiver] = sentPayments[receiver].add(amount);
+        sentPayments[sender] = sentPayments[sender].add(amount);
+        receivedPayments[receiver] = receivedPayments[receiver].add(amount);
         emit DepositMade(sender, amount, receiver);
     }
 
     function getDepositedPayments(address receiver) public view onlyOwner returns (uint256) {
-        return sentPayments[receiver];
+        return receivedPayments[receiver];
     }
 }
