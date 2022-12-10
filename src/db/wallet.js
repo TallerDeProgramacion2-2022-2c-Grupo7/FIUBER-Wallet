@@ -12,14 +12,14 @@ const getWallets = async () => {
   return wallets.map(wallet => wallet.toJSON());
 };
 
-const getWalletsByUid = async uid => {
-  const wallets = await db.wallet.find({ where: { uid } });
+const getWalletByUid = async uid => {
+  const wallet = await db.wallet.findByPk(uid);
 
-  return wallets.map(wallet => wallet.toJSON());
+  return wallet.toJSON();
 };
 
 module.exports = {
   createWallet,
   getWallets,
-  getWalletsByUid,
+  getWalletByUid,
 };

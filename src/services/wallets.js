@@ -22,11 +22,11 @@ const createWallet =
   };
 
 const getWalletsData = () => uid => {
-  return uid ? db.getWalletsByUid(uid) : db.getWallets();
+  return uid ? [db.getWalletByUid(uid)] : db.getWallets();
 };
 
 const getWalletData = () => uid => {
-  return db.getWalletsByUid(uid)[-1];
+  return db.getWalletByUid(uid);
 };
 
 const getWallet =
@@ -38,10 +38,20 @@ const getWallet =
     return new ethers.Wallet(walletData.privateKey, provider);
   };
 
+const getBalance =
+  ({ config }) =>
+  async uid => {
+    const wallet = await getWallet({ config })(uid);
+    const balance = await wallet.getBalance();
+
+    return ethers.utils.formatEther(balance);
+  };
+
 module.exports = ({ config }) => ({
   createWallet: createWallet({ config }),
   getDeployerWallet: getDeployerWallet({ config }),
   getWalletsData: getWalletsData({ config }),
   getWalletData: getWalletData({ config }),
   getWallet: getWallet({ config }),
+  getBalance: getBalance({ config }),
 });

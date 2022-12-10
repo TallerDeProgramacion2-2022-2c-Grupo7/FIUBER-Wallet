@@ -6,7 +6,6 @@ const deployFunc: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const { deployments, getNamedAccounts } = hre;
   const { deployer } = await getNamedAccounts();
   const { deploy } = deployments;
-  console.log(deployer);
   const deployResult = await deploy("BasicPayments", {
     from: deployer,
     gasLimit: 900000,
