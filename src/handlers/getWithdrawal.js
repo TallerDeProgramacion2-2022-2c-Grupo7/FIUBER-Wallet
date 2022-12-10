@@ -3,19 +3,19 @@ function schema() {
     params: {
       type: "object",
       properties: {
-        id: {
+        txHash: {
           type: "string",
         },
       },
     },
-    required: ["id"],
+    required: ["txHash"],
   };
 }
 
-function handler({ walletService }) {
+function handler({ contractInteraction }) {
   return async function (req, reply) {
-    const body = await walletService.createWallet(req.user.uid);
-    return reply.code(200).send({ result: body });
+    const body = await contractInteraction.getWithdrawReceipt(req.params.txHash);
+    reply.code(200).send({ result: body });
   };
 }
 

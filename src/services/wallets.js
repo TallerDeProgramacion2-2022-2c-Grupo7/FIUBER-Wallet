@@ -35,6 +35,10 @@ const getWallet =
     const provider = new ethers.providers.AlchemyProvider(config.network, process.env.ALCHEMY_API_KEY);
     const walletData = await db.getWalletByUid(uid);
 
+    if (walletData == null) {
+      return null;
+    }
+
     return new ethers.Wallet(walletData.privateKey, provider);
   };
 

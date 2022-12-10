@@ -18,7 +18,7 @@ function handler({ walletService }) {
       return reply.code(403).send({ error: "You can only get your own wallet" });
     }
     const body = await walletService.getWalletData(req.params.id);
-    reply.code(200).send(body);
+    reply.code(200).send({ result: body });
   };
 }
 

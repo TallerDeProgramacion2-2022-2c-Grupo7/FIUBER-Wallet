@@ -19,11 +19,15 @@ function schema() {
 }
 
 function handler({ contractInteraction, walletService }) {
-  return async function (req) {
+  return async function (req, reply) {
     const senderWallet = await walletService.getWallet(req.body.senderId);
     const receiverWallet = await walletService.getWallet(req.body.receiverId);
 
-    return contractInteraction.deposit(senderWallet, req.body.amountInEthers, receiverWallet);
+    const tx = await contractInteraction.deposit(senderWallet, req.body.amountInEthers, receiverWallet);
+
+    console.log("deposit", tx);
+
+    reply.code(201).send({ result: tx });
   };
 }
 

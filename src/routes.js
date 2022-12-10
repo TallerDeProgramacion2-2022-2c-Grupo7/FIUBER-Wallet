@@ -5,7 +5,8 @@ const createDeposit = require("./handlers/createDepositHandler");
 const getDeposit = require("./handlers/getDepositHandler");
 const getBalance = require("./handlers/getBalanceHandler");
 const getLocked = require("./handlers/getLockedHandler");
-const createWithdawal = require("./handlers/createWithdrawal");
+const createWithdrawal = require("./handlers/createWithdrawal");
+const getWithdrawal = require("./handlers/getWithdrawal");
 
 function getWalletDataRoute({ services, config, fastify }) {
   return {
@@ -81,8 +82,18 @@ function createWithdawalRoute({ services, config, fastify }) {
   return {
     method: "POST",
     url: "/withdraw",
-    schema: createWithdawal.schema(config),
-    handler: createWithdawal.handler({ config, ...services }),
+    schema: createWithdrawal.schema(config),
+    handler: createWithdrawal.handler({ config, ...services }),
+    preHandler: fastify.auth([fastify.firebaseAuth]),
+  };
+}
+
+function getWithdrawalRoute({ services, config, fastify }) {
+  return {
+    method: "GET",
+    url: "/withdraw/:txHash",
+    schema: getWithdrawal.schema(config),
+    handler: getWithdrawal.handler({ config, ...services }),
     preHandler: fastify.auth([fastify.firebaseAuth]),
   };
 }
@@ -96,4 +107,5 @@ module.exports = [
   getBalanceRoute,
   getLockedRoute,
   createWithdawalRoute,
+  getWithdrawalRoute,
 ];
