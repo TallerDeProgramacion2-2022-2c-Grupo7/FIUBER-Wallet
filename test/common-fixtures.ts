@@ -21,17 +21,19 @@ export function fixtureDepositMade(amountToBeSent: BigNumberish) {
     basicPayments: BasicPayments;
     deployer: SignerWithAddress;
     sender: SignerWithAddress;
+    receiver: string;
   }> {
-    const { deployer: deployerAddress, sender: senderAddress } = await getNamedAccounts();
+    const { deployer: deployerAddress, sender: senderAddress, receiver } = await getNamedAccounts();
     const deployer = await ethers.getSigner(deployerAddress);
     const sender = await ethers.getSigner(senderAddress);
     const basicPayments = await loadFixture(fixtureDeployedBasicPayments);
-    const paymentTx = <Transaction>await basicPayments.deposit({ value: amountToBeSent });
+    const paymentTx = <Transaction>await basicPayments.deposit(receiver, { value: amountToBeSent });
     return {
       paymentTx,
       basicPayments,
       deployer,
       sender,
+      receiver,
     };
   };
 }
