@@ -38,14 +38,17 @@ const chainIds = {
 // Ensure that we have all the environment variables we need.
 let mnemonic: string;
 if (!process.env.MNEMONIC) {
-  throw new Error("Please set your MNEMONIC in a .env file");
+  console.warn("Please set your MNEMONIC in a .env file");
+  mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon";
+
 } else {
   mnemonic = process.env.MNEMONIC;
 }
 
 let alchemyApiKey: string;
 if (!process.env.ALCHEMY_API_KEY) {
-  throw new Error("Please set your ALCHEMY_API_KEY in a .env file");
+  console.warn("Please set your ALCHEMY_API_KEY in a .env file");
+  alchemyApiKey = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 } else {
   alchemyApiKey = process.env.ALCHEMY_API_KEY;
 }
